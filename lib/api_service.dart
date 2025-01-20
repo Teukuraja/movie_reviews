@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class ApiService {
-  static const String baseUrl = 'https://crudcrud.com/api/7f27486f21e94a7fad510553b2801221';
+class ApiService { 
+ static const String baseUrl = 'https://crudcrud.com/api/364a63d17d9443ee95418f73572c5ef0';
+
 
   Future<bool> registerUser(String username, String password) async {
-    try {
+    try { 
       final response = await http.post(
         Uri.parse('$baseUrl/users'),
         headers: {'Content-Type': 'application/json'},
@@ -20,7 +21,7 @@ class ApiService {
   Future<bool> checkUsernameExists(String username) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/users'));
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200) {    
         final List users = jsonDecode(response.body);
         return users.any((user) => user['username'] == username);
       }
@@ -93,6 +94,7 @@ class ApiService {
     } catch (e) {
       print('Error deleting review: $e');
       return false;
+      
     }
   }
 }
