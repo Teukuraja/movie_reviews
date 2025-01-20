@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // Import untuk memilih gambar
+import 'dart:io'; // Import untuk menggunakan File
+import 'dart:convert'; // Import untuk decoding gambar Base64
 import '../api_service.dart';
 
 class AddEditReviewScreen extends StatefulWidget {
@@ -16,6 +19,8 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
   final _ratingController = TextEditingController();
   final _commentController = TextEditingController();
   final _apiService = ApiService();
+  File? _image; // Variabel untuk menyimpan gambar yang dipilih
+  String? _existingImage; // Menyimpan gambar lama (Base64)
 
   @override
   void initState() {
@@ -24,9 +29,33 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
       _titleController.text = widget.review!['title'];
       _ratingController.text = widget.review!['rating'].toString();
       _commentController.text = widget.review!['comment'];
+      // Memuat gambar lama dari review
+      _existingImage = widget.review!['image'];
     }
   }
 
+  // Fungsi untuk memilih gambar dari galeri atau kamera
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery); // Bisa diganti ke ImageSource.camera untuk memilih gambar dari kamera
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+
+      // Memastikan format gambar yang dipilih valid
+      final fileExtension = pickedFile.path.split('.').last.toLowerCase();
+      if (fileExtension != 'jpg' && fileExtension != 'jpeg' && fileExtension != 'png') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hanya format gambar JPG dan PNG yang diterima.')),
+        );
+        return;
+      }
+    }
+  }
+
+  // Fungsi untuk menyimpan review dan gambar
   void _saveReview() async {
     final title = _titleController.text.trim();
     final rating = int.tryParse(_ratingController.text) ?? 0;
@@ -42,11 +71,25 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
 
     bool success;
     if (widget.review == null) {
-      // Tambah review baru
-      success = await _apiService.addReview(widget.username, title, rating, comment);
+      // Menambahkan review baru
+      success = await _apiService.addReview(
+        widget.username, 
+        title, 
+        rating, 
+        comment, 
+        _image // Menambahkan gambar
+      );
     } else {
-      // Edit review
-      success = await _apiService.updateReview(widget.review!['_id'], widget.username, title, rating, comment);
+      // Mengupdate review
+      success = await _apiService.updateReview(
+        widget.review!['_id'], 
+        widget.username, 
+        title, 
+        rating, 
+        comment, 
+        _image ?? File(''), // Menambahkan gambar baru atau menggunakan gambar lama
+        _existingImage,  // Kirim gambar lama jika tidak ada gambar baru
+      );
     }
 
     if (success) {
@@ -84,6 +127,28 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
               controller: _commentController,
               decoration: InputDecoration(labelText: 'Komentar'),
             ),
+            SizedBox(height: 20),
+            // Tombol untuk memilih gambar
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: Text(_image == null ? 'Pilih Gambar' : 'Gambar Terpilih'),
+            ),
+            // Menampilkan gambar yang dipilih
+            if (_image != null)
+              Image.file(
+                _image!,
+                height: 200,
+                width: 200,
+                fit: BoxFit.cover,
+              ),
+            // Menampilkan gambar lama jika ada
+            if (_existingImage != null && _image == null)
+              Image.memory(
+                base64Decode(_existingImage!),
+                height: 200,
+                width: 200,
+                fit: BoxFit.cover,
+              ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveReview,

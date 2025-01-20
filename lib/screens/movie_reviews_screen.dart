@@ -39,6 +39,27 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
     }
   }
 
+  void _likeReview(String id, int index) async {
+    try {
+      final success = await _apiService.likeReview(id);  // Memperbarui status liked menjadi true
+      if (success) {
+        setState(() {
+          // Mengubah status liked ke true setelah berhasil
+          _reviews[index]['liked'] = true;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyukai review')),
+        );
+      }
+    } catch (e) {
+      print('Error saat menyukai review: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +93,21 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Ikon Love dengan animasi
+                      GestureDetector(
+                        onTap: () => _likeReview(review['_id'], index),
+                        child: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 300),
+                          child: Icon(
+                            review['liked'] == true
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            key: ValueKey<bool>(review['liked'] ?? false), // Pastikan liked tidak null
+                            color: review['liked'] == true ? Colors.red : Colors.grey,
+                            size: 28,
+                          ),
+                        ),
+                      ),
                       IconButton(
                         icon: Icon(Icons.edit),
                         onPressed: () async {
