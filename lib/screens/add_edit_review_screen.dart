@@ -46,7 +46,7 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
       success = await _apiService.addReview(widget.username, title, rating, comment);
     } else {
       // Edit review
-      success = await _apiService.updateReview(widget.review!['_id'], title, rating, comment);
+      success = await _apiService.updateReview(widget.review!['_id'], widget.username, title, rating, comment);
     }
 
     if (success) {
@@ -69,10 +69,11 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Title field: Nonaktifkan hanya jika Anda ingin judul tidak bisa diubah
             TextField(
               controller: _titleController,
               decoration: InputDecoration(labelText: 'Judul Film'),
-              readOnly: isEditMode, // Nonaktifkan input jika dalam mode edit
+              enabled: true, // Selalu aktif, memungkinkan pengguna untuk mengedit
             ),
             TextField(
               controller: _ratingController,

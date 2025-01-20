@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class ApiService { 
- static const String baseUrl = 'https://crudcrud.com/api/364a63d17d9443ee95418f73572c5ef0';
-
+class ApiService {
+  static const String baseUrl = 'https://crudcrud.com/api/364a63d17d9443ee95418f73572c5ef0';
 
   Future<bool> registerUser(String username, String password) async {
-    try { 
+    try {
       final response = await http.post(
         Uri.parse('$baseUrl/users'),
         headers: {'Content-Type': 'application/json'},
@@ -21,7 +20,7 @@ class ApiService {
   Future<bool> checkUsernameExists(String username) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/users'));
-      if (response.statusCode == 200) {    
+      if (response.statusCode == 200) {
         final List users = jsonDecode(response.body);
         return users.any((user) => user['username'] == username);
       }
@@ -71,12 +70,17 @@ class ApiService {
     }
   }
 
-  Future<bool> updateReview(String id, String title, int rating, String comment) async {
+  Future<bool> updateReview(String id, String username, String title, int rating, String comment) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/reviews/$id'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'title': title, 'rating': rating, 'comment': comment}),
+        body: jsonEncode({
+          'username': username,  // Menambahkan username di sini
+          'title': title,
+          'rating': rating,
+          'comment': comment
+        }),
       );
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -87,14 +91,13 @@ class ApiService {
     }
   }
 
- Future<bool> deleteReview(String id) async {
+  Future<bool> deleteReview(String id) async {
     try {
       final response = await http.delete(Uri.parse('$baseUrl/reviews/$id'));
       return response.statusCode == 200;
     } catch (e) {
       print('Error deleting review: $e');
       return false;
-      
     }
   }
 }
