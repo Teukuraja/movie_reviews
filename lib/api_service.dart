@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://crudcrud.com/api/9c7ec16f92b044f3ac625e7746de27b4';
+  static const String baseUrl = 'https://crudcrud.com/api/9c7b14d523814f9fbffa1f99cad2e7f3';
 
   // Fungsi untuk mengonversi gambar menjadi Base64
   Future<String> _convertImageToBase64(File image) async {
@@ -173,14 +173,21 @@ class ApiService {
         // Menangani nilai null pada liked, memastikan nilai bool yang valid
         bool currentLikeStatus = review['liked'] != null && review['liked'] is bool ? review['liked'] as bool : false;
 
-        // Ubah status liked menjadi true
+        // Ubah status liked menjadi kebalikan dari nilai saat ini
         review['liked'] = !currentLikeStatus;
 
         // Kirimkan data yang sudah diubah ke server untuk update status 'liked'
         final updateResponse = await http.put(
           Uri.parse('$baseUrl/reviews/$reviewId'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(review),  // Mengirim status liked yang baru
+          body: jsonEncode({
+            'username': review['username'],
+            'title': review['title'],
+            'rating': review['rating'],
+            'comment': review['comment'],
+            'image': review['image'],
+            'liked': review['liked'],  // Mengirim status liked yang baru
+          }),
         );
 
         if (updateResponse.statusCode == 200) {

@@ -44,8 +44,8 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
       final success = await _apiService.likeReview(id);  // Memperbarui status liked menjadi true
       if (success) {
         setState(() {
-          // Mengubah status liked ke true setelah berhasil
-          _reviews[index]['liked'] = true;
+          // Menangani nilai null pada 'liked', memberikan nilai default false jika null
+          _reviews[index]['liked'] = _reviews[index]['liked'] != null ? !_reviews[index]['liked'] : true; // Toggle liked status
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
