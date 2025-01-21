@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://crudcrud.com/api/9d2599ba370a4b2398bb679a03424963';
+  static const String baseUrl = 'https://crudcrud.com/api/f23b51eee2544e17aeb7c9794d115083';
 
   // Fungsi untuk mengonversi gambar menjadi Base64
   Future<String> _convertImageToBase64(File image) async {
@@ -84,12 +84,23 @@ class ApiService {
 
       // Menambahkan data lainnya
       request.headers['Content-Type'] = 'application/json';
+
+      String? base64Image;
+      if (image != null) {
+        base64Image = await _convertImageToBase64(image);  // Mengirim gambar baru
+      } else {
+        base64Image = '';  // Tidak ada gambar, kirim string kosong
+      }
+
+      // Log data yang akan dikirim
+      print("Data yang dikirim: title=$title, rating=$rating, comment=$comment, image=$base64Image");
+
       request.body = jsonEncode({
         'username': username,
         'title': title,
         'rating': rating.toString(),
         'comment': comment,
-        'image': image != null ? await _convertImageToBase64(image) : null,  // Mengirim gambar dalam format Base64
+        'image': base64Image,
         'liked': false,  // Set default 'liked' ke false saat menambahkan review
       });
 
@@ -118,20 +129,22 @@ class ApiService {
       // Menambahkan data lainnya
       request.headers['Content-Type'] = 'application/json';
 
-      // Jika gambar baru ada, kirim gambar baru, jika tidak, kirim gambar lama
       String? base64Image;
       if (image != null) {
         base64Image = await _convertImageToBase64(image);  // Mengirim gambar baru
       } else {
-        base64Image = existingImage;  // Mengirim gambar lama jika tidak ada gambar baru
+        base64Image = existingImage ?? '';  // Jika tidak ada gambar baru, kirim gambar lama atau string kosong
       }
 
+      // Log data yang akan dikirim
+      print("Data yang dikirim untuk update: title=$title, rating=$rating, comment=$comment, image=$base64Image, username=$username");
+
       request.body = jsonEncode({
-        'username': username,
+        'username': username,  // Menambahkan username
         'title': title,
         'rating': rating.toString(),
         'comment': comment,
-        'image': base64Image,  // Gambar baru atau gambar lama
+        'image': base64Image,
       });
 
       final response = await request.send();

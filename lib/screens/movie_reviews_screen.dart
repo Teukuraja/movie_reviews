@@ -18,20 +18,30 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadReviews();
+    _loadReviews();  // Memuat review pada awalnya
   }
 
-  Future<void> _loadReviews() async {
-    final reviews = await _apiService.getReviews(widget.username);
-    setState(() {
-      _reviews = reviews;
-    });
+  // Fungsi untuk memuat ulang review setelah melakukan perubahan
+  void _loadReviews() async {
+    try {
+      final reviews = await _apiService.getReviews(widget.username);
+      setState(() {
+        _reviews = reviews;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat review: $e')),
+      );
+    }
   }
 
+  // Fungsi untuk menghapus review
   void _deleteReview(String id) async {
     final success = await _apiService.deleteReview(id);
     if (success) {
-      _loadReviews();
+      setState(() {
+        _reviews.removeWhere((review) => review['_id'] == id);
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal menghapus review')),
@@ -39,12 +49,14 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
     }
   }
 
+  // Fungsi untuk menyukai review
   void _likeReview(String id, int index) async {
     try {
-      final success = await _apiService.likeReview(id);  
+      final success = await _apiService.likeReview(id);
       if (success) {
         setState(() {
-          _reviews[index]['liked'] = _reviews[index]['liked'] != null ? !_reviews[index]['liked'] : true;
+          // Menangani nilai null dan memastikan status liked adalah bool
+          _reviews[index]['liked'] = (_reviews[index]['liked'] ?? false) != true; // Set ke true jika false, dan sebaliknya
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +86,10 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                   builder: (context) => AddEditReviewScreen(username: widget.username),
                 ),
               );
-              if (result == true) _loadReviews();  // Reload reviews after saving
+              if (result == true) {
+                // Memuat ulang review setelah menyimpan atau mengedit
+                _loadReviews();
+              }
             },
           ),
         ],
@@ -99,13 +114,16 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                             review: review,
                           ),
                         ),
-                      );
+                      ).then((_) {
+                        // Memuat ulang setelah kembali dari halaman edit
+                        _loadReviews();
+                      });
                     } else if (direction == DismissDirection.endToStart) {
                       // Delete action
                       _deleteReview(review['_id']);
                     }
 
-                    // Remove the dismissed review from the list immediately after dismissal
+                    // Hapus review yang sudah dihapus dari list
                     setState(() {
                       _reviews.removeAt(index);
                     });

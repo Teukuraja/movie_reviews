@@ -64,7 +64,7 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
     // Validasi input
     if (title.isEmpty || rating < 1 || rating > 10 || comment.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Data tidak valid. Judul, komentar, dan rating (1-10) harus diisi.')),
+        SnackBar(content: Text('Data tidak valid. Judul, komentar, dan rating (1-10) harus diisi.')) 
       );
       return;
     }
@@ -73,21 +73,21 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
     if (widget.review == null) {
       // Menambahkan review baru
       success = await _apiService.addReview(
-        widget.username, 
-        title, 
-        rating, 
-        comment, 
+        widget.username,
+        title,
+        rating,
+        comment,
         _image // Menambahkan gambar
       );
     } else {
       // Mengupdate review
       success = await _apiService.updateReview(
-        widget.review!['_id'], 
-        widget.username, 
-        title, 
-        rating, 
-        comment, 
-        _image ?? File(''), // Menambahkan gambar baru atau menggunakan gambar lama
+        widget.review!['_id'],
+        widget.username,
+        title,
+        rating,
+        comment,
+        _image != null ? _image : null, // Pastikan hanya gambar valid yang dikirim
         _existingImage,  // Kirim gambar lama jika tidak ada gambar baru
       );
     }
@@ -96,8 +96,36 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
       Navigator.pop(context, true); // Berhasil, kembali ke layar sebelumnya
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan review')),
+        SnackBar(content: Text('Gagal menyimpan review'))
       );
+    }
+  }
+
+  // Fungsi untuk menampilkan gambar yang valid atau fallback jika gambar invalid
+  Widget _displayImage() {
+    if (_image != null) {
+      return Image.file(
+        _image!,
+        height: 200,
+        width: 200,
+        fit: BoxFit.cover,
+      );
+    } else if (_existingImage != null && _existingImage!.isNotEmpty) {
+      try {
+        // Coba untuk mendekode Base64 gambar lama
+        final decodedImage = base64Decode(_existingImage!);
+        return Image.memory(
+          decodedImage,
+          height: 200,
+          width: 200,
+          fit: BoxFit.cover,
+        );
+      } catch (e) {
+        print("Error decoding image: $e");
+        return Text("Gambar tidak valid.");
+      }
+    } else {
+      return Text("Tidak ada gambar.");
     }
   }
 
@@ -133,22 +161,8 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
               onPressed: _pickImage,
               child: Text(_image == null ? 'Pilih Gambar' : 'Gambar Terpilih'),
             ),
-            // Menampilkan gambar yang dipilih
-            if (_image != null)
-              Image.file(
-                _image!,
-                height: 200,
-                width: 200,
-                fit: BoxFit.cover,
-              ),
-            // Menampilkan gambar lama jika ada
-            if (_existingImage != null && _image == null)
-              Image.memory(
-                base64Decode(_existingImage!),
-                height: 200,
-                width: 200,
-                fit: BoxFit.cover,
-              ),
+            // Menampilkan gambar yang dipilih atau fallback gambar lama
+            _displayImage(),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveReview,
