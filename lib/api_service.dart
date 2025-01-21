@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://crudcrud.com/api/9c7b14d523814f9fbffa1f99cad2e7f3';
+  static const String baseUrl = 'https://crudcrud.com/api/9d2599ba370a4b2398bb679a03424963';
 
   // Fungsi untuk mengonversi gambar menjadi Base64
   Future<String> _convertImageToBase64(File image) async {

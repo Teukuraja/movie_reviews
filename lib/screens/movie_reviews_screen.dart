@@ -41,11 +41,10 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
 
   void _likeReview(String id, int index) async {
     try {
-      final success = await _apiService.likeReview(id);  // Memperbarui status liked menjadi true
+      final success = await _apiService.likeReview(id);  
       if (success) {
         setState(() {
-          // Menangani nilai null pada 'liked', memberikan nilai default false jika null
-          _reviews[index]['liked'] = _reviews[index]['liked'] != null ? !_reviews[index]['liked'] : true; // Toggle liked status
+          _reviews[index]['liked'] = _reviews[index]['liked'] != null ? !_reviews[index]['liked'] : true;
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +74,7 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                   builder: (context) => AddEditReviewScreen(username: widget.username),
                 ),
               );
-              if (result == true) _loadReviews();
+              if (result == true) _loadReviews();  // Reload reviews after saving
             },
           ),
         ],
@@ -86,48 +85,93 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
               itemCount: _reviews.length,
               itemBuilder: (context, index) {
                 final review = _reviews[index];
-                return ListTile(
-                  title: Text(review['title']),
-                  subtitle: Text('${review['rating']} / 10\n${review['comment']}'),
-                  isThreeLine: true,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Ikon Love dengan animasi
-                      GestureDetector(
-                        onTap: () => _likeReview(review['_id'], index),
-                        child: AnimatedSwitcher(
-                          duration: Duration(milliseconds: 300),
-                          child: Icon(
-                            review['liked'] == true
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            key: ValueKey<bool>(review['liked'] ?? false), // Pastikan liked tidak null
-                            color: review['liked'] == true ? Colors.red : Colors.grey,
-                            size: 28,
+                return Dismissible(
+                  key: Key(review['_id']),
+                  direction: DismissDirection.horizontal,
+                  onDismissed: (direction) {
+                    if (direction == DismissDirection.startToEnd) {
+                      // Edit action
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddEditReviewScreen(
+                            username: widget.username,
+                            review: review,
                           ),
                         ),
+                      );
+                    } else if (direction == DismissDirection.endToStart) {
+                      // Delete action
+                      _deleteReview(review['_id']);
+                    }
+
+                    // Remove the dismissed review from the list immediately after dismissal
+                    setState(() {
+                      _reviews.removeAt(index);
+                    });
+                  },
+                  background: Container(
+                    color: Colors.green,
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Icon(Icons.edit, color: Colors.white),
+                    ),
+                  ),
+                  secondaryBackground: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                  ),
+                  child: Card(
+                    margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    elevation: 5,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(8.0),
+                      title: Text(
+                        review['title'],
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddEditReviewScreen(
-                                username: widget.username,
-                                review: review,
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.star, size: 18, color: Colors.amber),
+                              Text('${review['rating']} / 10', style: TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            review['comment'] ?? 'Tidak ada komentar',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      isThreeLine: true,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _likeReview(review['_id'], index),
+                            child: AnimatedSwitcher(
+                              duration: Duration(milliseconds: 300),
+                              child: Icon(
+                                review['liked'] == true
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                key: ValueKey<bool>(review['liked'] ?? false),
+                                color: review['liked'] == true ? Colors.red : Colors.grey,
+                                size: 28,
                               ),
                             ),
-                          );
-                          if (result == true) _loadReviews();
-                        },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => _deleteReview(review['_id']),
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },
