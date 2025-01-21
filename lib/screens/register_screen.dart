@@ -11,8 +11,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _apiService = ApiService();
 
+  // Fungsi untuk registrasi pengguna baru
   void _register() async {
-    // Periksa apakah username sudah terdaftar
+    // Memeriksa apakah username sudah terdaftar
     final usernameExists = await _apiService.checkUsernameExists(_usernameController.text);
 
     if (usernameExists) {
@@ -22,7 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // Lanjutkan registrasi jika username belum ada
+    // Jika username belum terdaftar, lanjutkan registrasi
     final success = await _apiService.registerUser(
       _usernameController.text,
       _passwordController.text,
@@ -37,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _usernameController.clear();
       _passwordController.clear();
 
-      // Navigasi ke halaman login
+      // Navigasi kembali ke halaman login
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _register,
+              onPressed: _register,  
               child: Text('Register'),
             ),
           ],

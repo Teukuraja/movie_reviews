@@ -18,10 +18,10 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadReviews();  // Memuat review pada awalnya
+    _loadReviews();  
   }
 
-  // Fungsi untuk memuat ulang review setelah melakukan perubahan
+  // Fungsi untuk memuat data review
   void _loadReviews() async {
     try {
       final reviews = await _apiService.getReviews(widget.username);
@@ -55,8 +55,7 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
       final success = await _apiService.likeReview(id);
       if (success) {
         setState(() {
-          // Menangani nilai null dan memastikan status liked adalah bool
-          _reviews[index]['liked'] = (_reviews[index]['liked'] ?? false) != true; // Set ke true jika false, dan sebaliknya
+          _reviews[index]['liked'] = (_reviews[index]['liked'] ?? false) != true;
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +63,6 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
         );
       }
     } catch (e) {
-      print('Error saat menyukai review: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi kesalahan: $e')),
       );
@@ -87,7 +85,7 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                 ),
               );
               if (result == true) {
-                // Memuat ulang review setelah menyimpan atau mengedit
+                // Memuat ulang setelah menambah atau mengedit review
                 _loadReviews();
               }
             },
@@ -105,7 +103,7 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                   direction: DismissDirection.horizontal,
                   onDismissed: (direction) {
                     if (direction == DismissDirection.startToEnd) {
-                      // Edit action
+                      // Arahkan ke halaman edit review
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -119,7 +117,7 @@ class _MovieReviewsScreenState extends State<MovieReviewsScreen> {
                         _loadReviews();
                       });
                     } else if (direction == DismissDirection.endToStart) {
-                      // Delete action
+                      
                       _deleteReview(review['_id']);
                     }
 

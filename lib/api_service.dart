@@ -5,18 +5,18 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = 'https://crudcrud.com/api/f23b51eee2544e17aeb7c9794d115083';
 
-  // Fungsi untuk mengonversi gambar menjadi Base64
+  // Mengonversi gambar menjadi format Base64
   Future<String> _convertImageToBase64(File image) async {
     try {
       final bytes = await image.readAsBytes();
-      return base64Encode(bytes);  // Mengubah gambar ke format Base64
+      return base64Encode(bytes);  // Mengubah gambar ke Base64
     } catch (e) {
       print("Error converting image to Base64: $e");
-      return '';  // Jika gagal konversi, mengembalikan string kosong
+      return '';  // Mengembalikan string kosong jika gagal
     }
   }
 
-  // Fungsi untuk registrasi user
+  // Registrasi user baru
   Future<bool> registerUser(String username, String password) async {
     try {
       final response = await http.post(
@@ -24,20 +24,20 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username, 'password': password}),
       );
-      return response.statusCode == 201;
+      return response.statusCode == 201;  // Mengembalikan true jika berhasil
     } catch (e) {
       print("Error during user registration: $e");
       return false;
     }
   }
 
-  // Fungsi untuk memeriksa apakah username sudah ada
+  // Memeriksa apakah username sudah terdaftar
   Future<bool> checkUsernameExists(String username) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/users'));
       if (response.statusCode == 200) {
         final List users = jsonDecode(response.body);
-        return users.any((user) => user['username'] == username);
+        return users.any((user) => user['username'] == username);  // Mengecek apakah username ada
       }
       return false;
     } catch (e) {
@@ -46,7 +46,7 @@ class ApiService {
     }
   }
 
-  // Fungsi untuk login user
+  // Login user
   Future<bool> loginUser(String username, String password) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/users'));
@@ -61,13 +61,13 @@ class ApiService {
     }
   }
 
-  // Fungsi untuk mendapatkan review berdasarkan username
+  // Mendapatkan review berdasarkan username
   Future<List<dynamic>> getReviews(String username) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/reviews'));
       if (response.statusCode == 200) {
         final List reviews = jsonDecode(response.body);
-        return reviews.where((review) => review['username'] == username).toList();
+        return reviews.where((review) => review['username'] == username).toList();  
       }
       return [];
     } catch (e) {
@@ -76,24 +76,21 @@ class ApiService {
     }
   }
 
-  // Fungsi untuk menambahkan review baru dengan gambar (Base64)
+  // Menambahkan review baru dengan gambar (Base64)
   Future<bool> addReview(String username, String title, int rating, String comment, File? image) async {
     try {
       var uri = Uri.parse('$baseUrl/reviews');
       var request = http.Request('POST', uri);
 
-      // Menambahkan data lainnya
+      // Menambahkan data review
       request.headers['Content-Type'] = 'application/json';
 
       String? base64Image;
       if (image != null) {
-        base64Image = await _convertImageToBase64(image);  // Mengirim gambar baru
+        base64Image = await _convertImageToBase64(image);  
       } else {
-        base64Image = '';  // Tidak ada gambar, kirim string kosong
+        base64Image = '';  
       }
-
-      // Log data yang akan dikirim
-      print("Data yang dikirim: title=$title, rating=$rating, comment=$comment, image=$base64Image");
 
       request.body = jsonEncode({
         'username': username,
@@ -101,7 +98,7 @@ class ApiService {
         'rating': rating.toString(),
         'comment': comment,
         'image': base64Image,
-        'liked': false,  // Set default 'liked' ke false saat menambahkan review
+        'liked': false,  // Status 'liked' default ke false
       });
 
       final response = await request.send();
@@ -120,27 +117,24 @@ class ApiService {
     }
   }
 
-  // Fungsi untuk mengupdate review dengan gambar (Base64)
+  // Mengupdate review dengan gambar (Base64)
   Future<bool> updateReview(String id, String username, String title, int rating, String comment, File? image, String? existingImage) async {
     try {
       var uri = Uri.parse('$baseUrl/reviews/$id');
       var request = http.Request('PUT', uri);
 
-      // Menambahkan data lainnya
+      // Menambahkan data review
       request.headers['Content-Type'] = 'application/json';
 
       String? base64Image;
       if (image != null) {
-        base64Image = await _convertImageToBase64(image);  // Mengirim gambar baru
+        base64Image = await _convertImageToBase64(image); 
       } else {
-        base64Image = existingImage ?? '';  // Jika tidak ada gambar baru, kirim gambar lama atau string kosong
+        base64Image = existingImage ?? '';  
       }
 
-      // Log data yang akan dikirim
-      print("Data yang dikirim untuk update: title=$title, rating=$rating, comment=$comment, image=$base64Image, username=$username");
-
       request.body = jsonEncode({
-        'username': username,  // Menambahkan username
+        'username': username,
         'title': title,
         'rating': rating.toString(),
         'comment': comment,
@@ -163,33 +157,30 @@ class ApiService {
     }
   }
 
-  // Fungsi untuk menghapus review
+  // Menghapus review berdasarkan ID
   Future<bool> deleteReview(String id) async {
     try {
       final response = await http.delete(Uri.parse('$baseUrl/reviews/$id'));
-      return response.statusCode == 200;
+      return response.statusCode == 200;  
     } catch (e) {
       print('Error deleting review: $e');
       return false;
     }
   }
 
-  // Fungsi untuk like review
+  // Menyukai review
   Future<bool> likeReview(String reviewId) async {
     try {
-      // Mengambil review berdasarkan ID
       final response = await http.get(Uri.parse('$baseUrl/reviews/$reviewId'));
 
       if (response.statusCode == 200) {
         final review = jsonDecode(response.body);
 
-        // Menangani nilai null pada liked, memastikan nilai bool yang valid
         bool currentLikeStatus = review['liked'] != null && review['liked'] is bool ? review['liked'] as bool : false;
 
-        // Ubah status liked menjadi kebalikan dari nilai saat ini
-        review['liked'] = !currentLikeStatus;
+        review['liked'] = !currentLikeStatus;  // Membalikkan status like
 
-        // Kirimkan data yang sudah diubah ke server untuk update status 'liked'
+        // Mengirim data update ke server
         final updateResponse = await http.put(
           Uri.parse('$baseUrl/reviews/$reviewId'),
           headers: {'Content-Type': 'application/json'},
@@ -199,20 +190,20 @@ class ApiService {
             'rating': review['rating'],
             'comment': review['comment'],
             'image': review['image'],
-            'liked': review['liked'],  // Mengirim status liked yang baru
+            'liked': review['liked'],  // Mengirim status like terbaru
           }),
         );
 
         if (updateResponse.statusCode == 200) {
           print("Status like berhasil diperbarui.");
-          return true;  // Jika berhasil memperbarui status
+          return true;
         } else {
           print("Gagal memperbarui status like: ${updateResponse.body}");
           return false;
         }
       }
       print('Review tidak ditemukan');
-      return false;  // Jika review tidak ditemukan
+      return false;
     } catch (e) {
       print('Error liking review: $e');
       return false;

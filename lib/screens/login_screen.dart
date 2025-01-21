@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _apiService = ApiService();
 
+  // Fungsi untuk menangani prcoses login
   void _login() async {
     final success = await _apiService.loginUser(
       _usernameController.text,
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success) {
+      // Arahkan ke layar MovieReviews jika login berhasil
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -27,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
+      // Tampilkan pesan error jika login gagal
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login gagal. Silakan cek username/password.')),
       );
@@ -41,20 +44,24 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Input untuk username
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(labelText: 'Username'),
             ),
+            // Input untuk password
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
+              obscureText: true, // Menyembunyikan password
             ),
             SizedBox(height: 20),
+            // Tombol login
             ElevatedButton(
               onPressed: _login,
               child: Text('Login'),
             ),
+            // Tombol untuk navigasi ke halaman pendaftaran
             TextButton(
               onPressed: () => Navigator.push(
                 context,
