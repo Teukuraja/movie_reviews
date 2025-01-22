@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Import untuk memilih gambar
-import 'dart:io'; // Import untuk menggunakan File
-import 'dart:convert'; // Import untuk decoding gambar Base64
+import 'package:image_picker/image_picker.dart'; 
+import 'dart:io'; 
+import 'dart:convert'; 
 import '../api_service.dart';
 
 class AddEditReviewScreen extends StatefulWidget {
@@ -19,8 +19,8 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
   final _ratingController = TextEditingController();
   final _commentController = TextEditingController();
   final _apiService = ApiService();
-  File? _image; // Menyimpan gambar yang dipilih
-  String? _existingImage; // Menyimpan gambar lama dalam format Base64
+  File? _image; 
+  String? _existingImage; 
 
   @override
   void initState() {
@@ -29,7 +29,7 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
       _titleController.text = widget.review!['title'];
       _ratingController.text = widget.review!['rating'].toString();
       _commentController.text = widget.review!['comment'];
-      _existingImage = widget.review!['image']; // Memuat gambar lama jika ada
+      _existingImage = widget.review!['image']; 
     }
   }
 
@@ -40,7 +40,7 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path); // Menyimpan gambar yang dipilih
+        _image = File(pickedFile.path); 
       });
 
       // Cek format gambar yang dipilih
@@ -70,13 +70,14 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
 
     bool success;
     if (widget.review == null) {
-      // Menambahkan review baru
+      
       success = await _apiService.addReview(
         widget.username,
         title,
         rating,
         comment,
-        _image // Menambahkan gambar
+        _image 
+
       );
     } else {
       // Mengupdate review yang ada
@@ -86,13 +87,13 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
         title,
         rating,
         comment,
-        _image != null ? _image : null, // Kirim gambar baru jika ada
-        _existingImage,  // Kirim gambar lama jika tidak ada gambar baru
+        _image != null ? _image : null, 
+        _existingImage,  
       );
     }
 
     if (success) {
-      Navigator.pop(context, true); // Kembali ke layar sebelumnya jika berhasil
+      Navigator.pop(context, true); 
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal menyimpan review'))
@@ -100,7 +101,9 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
     }
   }
 
-  // Fungsi untuk menampilkan gambar yang dipilih atau fallback gambar lama
+ 
+  // Fungsi untuk menampilkan gambarr yang dipilih atau fallback gambar lama
+ 
   Widget _displayImage() {
     if (_image != null) {
       return Image.file(
@@ -140,6 +143,7 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Input untuk judul review
+          
             TextField(
               controller: _titleController,
               decoration: InputDecoration(labelText: 'Judul Film'),
@@ -152,6 +156,7 @@ class _AddEditReviewScreenState extends State<AddEditReviewScreen> {
               keyboardType: TextInputType.number,
             ),
             // Input untuk komentar review
+         
             TextField(
               controller: _commentController,
               decoration: InputDecoration(labelText: 'Komentar'),
